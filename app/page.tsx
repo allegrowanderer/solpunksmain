@@ -204,15 +204,11 @@ export default function Home() {
     </button>
   </div>
   <div className="flex items-center space-x-4">
-    <Link href="https://twitter.com/RunesPunks" passHref>
-      <a target="_blank" rel="noopener noreferrer">
-        <Image src="/twitter.png" alt="Twitter" width={45} height={45} className="cursor-pointer" />
-      </a>
+    <Link href="https://twitter.com/RunesPunks" target="_blank" rel="noopener noreferrer">
+      <Image src="/twitter.png" alt="Twitter" width={45} height={45} className="cursor-pointer" />
     </Link>
-    <Link href="https://t.me/SolPunksOfficialTelegramChannel" passHref>
-      <a target="_blank" rel="noopener noreferrer">
-        <Image src="/telegram.png" alt="Telegram" width={45} height={45} className="cursor-pointer" />
-      </a>
+    <Link href="https://t.me/SolPunksOfficialTelegramChannel" target="_blank" rel="noopener noreferrer">
+      <Image src="/telegram.png" alt="Telegram" width={45} height={45} className="cursor-pointer" />
     </Link>
     <WalletMultiButton className="wallet-adapter-button bg-purple-500 font-runes" />
   </div>
