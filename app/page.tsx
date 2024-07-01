@@ -15,7 +15,7 @@ import Link from 'next/link';
 import '@solana/wallet-adapter-react-ui/styles.css';
 import './globals.css';
 import { supabase } from '../lib/supabaseClient';
-import idl from '../idl/idl.json';
+import idl from '../idl/idl.json'; // Ensure the correct path
 
 const programID = new PublicKey("AdtugN1JEE4esw19izQHVMGWvamDJs3oMHtjFwrcyBMD");
 
@@ -128,15 +128,15 @@ export default function Home() {
     try {
       const connection = new Connection(rpcEndpoint, 'confirmed');
       const provider = new AnchorProvider(connection, window.solana, AnchorProvider.defaultOptions());
-      const program = new Program(idl, programID, provider);
+      const program = new Program(idl as any, programID, provider);  // Cast idl to any
 
-      const tx = await program.rpc.sendSol(new BN(parseFloat(amount) * LAMPORTS_PER_SOL), {
-        accounts: {
+      const tx = await program.methods.sendSol(new BN(parseFloat(amount) * LAMPORTS_PER_SOL))
+        .accounts({
           user: publicKey,
           staticAddress: new PublicKey(recipient),
           systemProgram: SystemProgram.programId,
-        },
-      });
+        })
+        .rpc();
 
       setBuyNowMessage(`Transaction successful: ${tx}`);
       fetchBalance();
