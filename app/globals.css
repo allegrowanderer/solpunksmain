@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import '@solana/wallet-adapter-react-ui/styles.css';
+
+/* globals.css */
+
+@font-face {
+  font-family: 'Runes';
+  src: url('/runes.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'Runes', sans-serif; /* Optionally set as the default font */
+}
+
+.font-runes {
+  font-family: 'Runes', sans-serif;
+}
+
+
+
+body {
+  @apply font-halloween;
+  background-image: url('/runesbg.png'); /* Adjust the path as per your directory structure */
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@keyframes progress-animation {
+  0% { background-position: 1px 0; }
+  100% { background-position: 0 0; }
+}
+
+.progress-bar {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 1rem 1rem;
+  animation: progress-animation 1s linear infinite;
+  background-color: #B90000;
+}
+
+.progress-container {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
