@@ -204,7 +204,7 @@ export default function Home() {
           </button>
         </div>
         <div className="flex items-center space-x-4">
-          <Link href="https://twitter.com/SolPunks_Sol">
+          <Link href="https://twitter.com/RunesPunks">
             <Image src="/twitter.png" alt="Twitter" width={45} height={45} className="cursor-pointer" />
           </Link>
           <Link href="https://t.me/SolPunksOfficialTelegramChannel">
