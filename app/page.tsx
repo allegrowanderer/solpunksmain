@@ -7,7 +7,6 @@ SystemProgram,
 LAMPORTS_PER_SOL,
 PublicKey,
 Transaction,
-sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { useWallet, WalletContextState } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
@@ -141,37 +140,26 @@ return;
 
 try {
 const connection = new Connection(rpcEndpoint, "confirmed");
-const provider = new AnchorProvider(
-connection,
-window.solana,
-AnchorProvider.defaultOptions()
-);
-const program = new Program(idl as Idl, programID, provider);
-
-// Fetch a recent blockhash
-const { blockhash } = await connection.getLatestBlockhash();
 const transaction = new Transaction().add(
-await program.methods
-.sendSol(new BN(parseFloat(amount) * LAMPORTS_PER_SOL))
-.accounts({
-user: publicKey,
-staticAddress: new PublicKey(recipient),
-systemProgram: SystemProgram.programId,
+SystemProgram.transfer({
+fromPubkey: publicKey,
+toPubkey: new PublicKey(recipient),
+lamports: parseFloat(amount) * LAMPORTS_PER_SOL,
 })
-.instruction() // Generate the instruction without sending it
 );
 
-// Set the recent blockhash
-transaction.recentBlockhash = blockhash;
 transaction.feePayer = publicKey;
+const { blockhash } = await connection.getRecentBlockhash();
+transaction.recentBlockhash = blockhash;
 
-// Request the wallet to sign the transaction
 const signedTransaction = await signTransaction(transaction);
+const signature = await connection.sendRawTransaction(
+signedTransaction.serialize()
+);
 
-// Send the signed transaction to the network
-const tx = await sendTransaction(signedTransaction, connection);
+await connection.confirmTransaction(signature, "confirmed");
 
-setBuyNowMessage(`Transaction successful: ${tx}`);
+setBuyNowMessage(`Transaction successful: ${signature}`);
 fetchBalance();
 } catch (error) {
 if (error instanceof Error) {
