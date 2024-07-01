@@ -185,34 +185,39 @@ export default function Home() {
           {buyNowMessage}
         </div>
       )}
-      <header className="flex justify-between items-center p-2 lg:p-4 bg-teal-500 border-b-4 border-black">
-        <div className="flex items-center">
-          <Link href="https://solpunks.io">
-            <Image src="/solpunkscoin.png" alt="SolPunks Logo" width={125} height={125} className="rounded-full cursor-pointer" />
-          </Link>
-          <h1 className="ml-4 text-3xl font-runes text-black" style={{ fontSize: '300%' }}></h1>
-        </div>
-        <div className="hidden lg:flex items-center space-x-12">
-          <a href="#about" className="text-black font-runes text-7xl">ABOUT</a>
-          <a href="#how-to-buy" className="text-black font-runes text-7xl">HOW TO BUY</a>
-        </div>
-        <div className="flex items-center space-x-4 lg:hidden">
-          <button onClick={toggleMenu} className="text-black">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
-          </button>
-        </div>
-        <div className="flex items-center space-x-4">
-          <Link href="https://twitter.com/RunesPunks">
-            <Image src="/twitter.png" alt="Twitter" width={45} height={45} className="cursor-pointer" />
-          </Link>
-          <Link href="https://t.me/SolPunksOfficialTelegramChannel">
-            <Image src="/telegram.png" alt="Telegram" width={45} height={45} className="cursor-pointer" />
-          </Link>
-          <WalletMultiButton className="wallet-adapter-button bg-purple-500 font-runes" />
-        </div>
-      </header>
+     <header className="flex justify-between items-center p-2 lg:p-4 bg-teal-500 border-b-4 border-black">
+  <div className="flex items-center">
+    <Link href="https://solpunks.io">
+      <Image src="/solpunkscoin.png" alt="SolPunks Logo" width={125} height={125} className="rounded-full cursor-pointer" />
+    </Link>
+    <h1 className="ml-4 text-3xl font-runes text-black" style={{ fontSize: '300%' }}></h1>
+  </div>
+  <div className="hidden lg:flex items-center space-x-12">
+    <a href="#about" className="text-black font-runes text-7xl">ABOUT</a>
+    <a href="#how-to-buy" className="text-black font-runes text-7xl">HOW TO BUY</a>
+  </div>
+  <div className="flex items-center space-x-4 lg:hidden">
+    <button onClick={toggleMenu} className="text-black">
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    </button>
+  </div>
+  <div className="flex items-center space-x-4">
+    <Link href="https://twitter.com/RunesPunks" passHref>
+      <a target="_blank" rel="noopener noreferrer">
+        <Image src="/twitter.png" alt="Twitter" width={45} height={45} className="cursor-pointer" />
+      </a>
+    </Link>
+    <Link href="https://t.me/SolPunksOfficialTelegramChannel" passHref>
+      <a target="_blank" rel="noopener noreferrer">
+        <Image src="/telegram.png" alt="Telegram" width={45} height={45} className="cursor-pointer" />
+      </a>
+    </Link>
+    <WalletMultiButton className="wallet-adapter-button bg-purple-500 font-runes" />
+  </div>
+</header>
+
       {isMenuOpen && (
         <div className="lg:hidden bg-teal-500 text-black font-runes flex flex-col items-center space-y-4 py-4">
           <a href="#about" className="text-6xl" onClick={toggleMenu}>ABOUT</a>
