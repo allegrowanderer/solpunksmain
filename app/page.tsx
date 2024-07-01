@@ -6,18 +6,18 @@ Connection,
 SystemProgram,
 LAMPORTS_PER_SOL,
 PublicKey,
+Transaction,
+sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { useWallet, WalletContextState } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { Program, AnchorProvider, BN } from "@project-serum/anchor";
+import { Program, AnchorProvider, BN, Idl } from "@project-serum/anchor";
 import Image from "next/image";
 import Link from "next/link";
 import "@solana/wallet-adapter-react-ui/styles.css";
 import "./globals.css";
 import { supabase } from "../lib/supabaseClient";
 import idl from "../idl/idl.json"; // Ensure the correct path
-import { Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
-import { Idl } from "@project-serum/anchor";
 
 const programID = new PublicKey("AdtugN1JEE4esw19izQHVMGWvamDJs3oMHtjFwrcyBMD");
 
@@ -38,6 +38,7 @@ const [twitterUsername, setTwitterUsername] = useState("");
 const [isClient, setIsClient] = useState(false);
 const [hasFollowed, setHasFollowed] = useState(false);
 const [hasPosted, setHasPosted] = useState(false);
+const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 useEffect(() => {
 setIsClient(true);
@@ -193,8 +194,6 @@ console.error("Failed to copy text: ", err);
 }
 );
 };
-
-const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 const toggleMenu = () => {
 setIsMenuOpen(!isMenuOpen);
