@@ -226,10 +226,10 @@ export default function Home() {
       )}
       <header className="flex justify-between items-center p-2 lg:p-4 bg-teal-500 border-b-4 border-black">
         <div className="flex items-center">
-          <Link href="https://solpunks.io">
+          <Link href="https://frydaysundaytuesday.com">
             <Image
               src="/solpunkscoin.png"
-              alt="SolPunks Logo"
+              alt="logo Logo"
               width={125}
               height={125}
               className="rounded-full cursor-pointer"
@@ -443,7 +443,7 @@ export default function Home() {
             </div>
             <Image
               src="/solpunksborder.png"
-              alt="SolPunks Photo"
+              alt="photo Photo"
               width={145}
               height={145}
               className="absolute top-[-35px] right-[-28px]"
@@ -469,7 +469,7 @@ export default function Home() {
             ?
           </h2>
           <p className="text-xl font-runes">
-            $PUNK is first token for SolPunks! $PUNK is a playful and
+            $PUNK is first token! $PUNK is a playful and
             community-driven token. We believe in the collective strength and
             creativity of our members to drive the project forward. Our token is
             not just about financial opportunity but also about embracing the
@@ -526,7 +526,7 @@ export default function Home() {
 
       <footer className="p-4 bg-teal-500 text-center">
         <p className="text-sm font-runes">
-          &copy; 2024 SolPunks on Solana. All rights reserved.
+          &copy; 2024 on Solana. All rights reserved.
         </p>
       </footer>
     </div>
