@@ -3,7 +3,7 @@
     "name": "your_program_name",
     "instructions": [
       {
-        "name": "buyTokens",
+        "name": "sendSol",
         "accounts": [
           {
             "name": "user",

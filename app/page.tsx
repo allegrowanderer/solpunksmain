@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import {
   Connection,
   PublicKey,
-  Transaction,
   SystemProgram,
   LAMPORTS_PER_SOL,
+  Transaction,
 } from "@solana/web3.js";
 import { useWallet, WalletContextState } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
@@ -137,26 +137,29 @@ export default function Home() {
     }
 
     try {
-      const connection = new Connection(rpcEndpoint, "confirmed");
-      const provider = new AnchorProvider(connection, window.solana, {
-        preflightCommitment: "confirmed",
-      });
-      const program = new Program(idl as Idl, programID, provider);
-
-      const transaction = await program.methods
-        .buyTokens(new BN(parseFloat(amount) * LAMPORTS_PER_SOL)) // Replace with your actual method and parameters
-        .accounts({
-          user: publicKey,
-          recipient: new PublicKey(recipient),
-          systemProgram: SystemProgram.programId,
-        })
-        .transaction();
+        const connection = new Connection(rpcEndpoint, "confirmed");
+        const provider = new AnchorProvider(connection, window.solana, {
+          preflightCommitment: "confirmed",
+        });
+        const program = new Program(idl as Idl, programID, provider);
+  
+        const transaction = new Transaction().add(
+          await program.methods
+            .sendSol(new BN(parseFloat(amount) * LAMPORTS_PER_SOL))
+            .accounts({
+              user: publicKey,
+              recipient: new PublicKey(recipient),
+              systemProgram: SystemProgram.programId,
+            })
+            .instruction()
+        );
 
       transaction.feePayer = publicKey;
       const { blockhash } = await connection.getRecentBlockhash();
       transaction.recentBlockhash = blockhash;
 
-      const { signature } = await window.solana.signAndSendTransaction(transaction);
+      const signed = await window.solana.signTransaction(transaction);
+      const signature = await connection.sendRawTransaction(signed.serialize());
       await connection.confirmTransaction(signature, "confirmed");
 
       setBuyNowMessage(`Transaction successful: ${signature}`);
