@@ -268,7 +268,7 @@ export default function Home() {
         </div>
         <div className="flex items-center space-x-4">
           <Link
-            href="https://twitter.com/RunesPunks"
+            href="https://twitter.com/"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -281,7 +281,7 @@ export default function Home() {
             />
           </Link>
           <Link
-            href="https://t.me/SolPunksOfficialTelegramChannel"
+            href="https://t.me/"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -410,7 +410,7 @@ export default function Home() {
                 onClick={() => {
                   window.open(
                     `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                      "Missed $BORPA? Don't Miss $PUNK!\n\nSolPunks Pre-sale has started 🚀🚀🚀Whales Discover This New SOL Coin! 1000%x 📈📈📈\n\nPresale Link: https://solpunks.io\n\n#Solana #SolPunks #Airdrop"
+                      "solana"
                     )}`,
                     "_blank"
                   );
