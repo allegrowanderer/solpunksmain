@@ -6,36 +6,41 @@ import {
   PublicKey,
   SystemProgram,
   LAMPORTS_PER_SOL,
-  Transaction,
-} from "@solana/web3.js";
-import { useWallet, WalletContextState } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { Program, AnchorProvider, BN, Idl } from "@project-serum/anchor";
-import Image from "next/image";
-import Link from "next/link";
-import "@solana/wallet-adapter-react-ui/styles.css";
-import "./globals.css";
-import { supabase } from "../lib/supabaseClient";
-import idl from "../idl/idl.json"; // Ensure the correct path
+  PublicKey,
+} from '@solana/web3.js';
+import { useWallet, WalletContextState } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { Program, AnchorProvider, BN } from '@project-serum/anchor';
+import Image from 'next/image';
+import Link from 'next/link';
+import '@solana/wallet-adapter-react-ui/styles.css';
+import './globals.css';
+import { supabase } from '../lib/supabaseClient';
+import idl from '../idl/idl.json'; // Ensure the correct path
 
 const programID = new PublicKey("AdtugN1JEE4esw19izQHVMGWvamDJs3oMHtjFwrcyBMD");
 const recipient = "9u92hBMxYgcGNi1JYSbRsuEM1CsLVW48G7jKG6rRhXr8";
 const rpcEndpoint =
   "https://mainnet.helius-rpc.com/?api-key=42734956-df14-4915-8bfe-56c62a20cd04";
 
+const recipient = "9u92hBMxYgcGNi1JYSbRsuEM1CsLVW48G7jKG6rRhXr8";
+const rpcEndpoint =
+  "https://mainnet.helius-rpc.com/?api-key=42734956-df14-4915-8bfe-56c62a20cd04";
+
 export default function Home() {
-  const { publicKey, sendTransaction }: WalletContextState = useWallet();
-  const [amount, setAmount] = useState("");
-  const [buyNowMessage, setBuyNowMessage] = useState<string>("");
-  const [submitMessage, setSubmitMessage] = useState<string>("");
-  const [copySuccess, setCopySuccess] = useState<string>("");
+  const { publicKey, signTransaction, sendTransaction }: WalletContextState = useWallet();
+  const [amount, setAmount] = useState('');
+  const [buyNowMessage, setBuyNowMessage] = useState<string>('');
+  const [submitMessage, setSubmitMessage] = useState<string>('');
+  const [copySuccess, setCopySuccess] = useState<string>('');
   const [progress, setProgress] = useState(0);
   const [balance, setBalance] = useState(0);
   const [twitterUsername, setTwitterUsername] = useState("");
   const [isClient, setIsClient] = useState(false);
   const [hasFollowed, setHasFollowed] = useState(false);
   const [hasPosted, setHasPosted] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const recipient = "9u92hBMxYgcGNi1JYSbRsuEM1CsLVW48G7jKG6rRhXr8";
+  const rpcEndpoint = "https://mainnet.helius-rpc.com/?api-key=42734956-df14-4915-8bfe-56c62a20cd04";
 
   useEffect(() => {
     setIsClient(true);
@@ -126,43 +131,24 @@ export default function Home() {
 
     if (!publicKey) {
       setBuyNowMessage("Please connect your wallet first.");
-      setTimeout(() => setBuyNowMessage(""), 3000);
-      return;
-    }
-
-    if (!window.solana || !window.solana.isPhantom) {
-      setBuyNowMessage("Please use Phantom Wallet to proceed.");
-      setTimeout(() => setBuyNowMessage(""), 3000);
+      setTimeout(() => setBuyNowMessage(''), 3000);
       return;
     }
 
     try {
-        const connection = new Connection(rpcEndpoint, "confirmed");
-        const provider = new AnchorProvider(connection, window.solana, {
-          preflightCommitment: "confirmed",
-        });
-        const program = new Program(idl as Idl, programID, provider);
-  
-        const transaction = new Transaction().add(
-          await program.methods
-            .sendSol(new BN(parseFloat(amount) * LAMPORTS_PER_SOL))
-            .accounts({
-              user: publicKey,
-              recipient: new PublicKey(recipient),
-              systemProgram: SystemProgram.programId,
-            })
-            .instruction()
-        );
+      const connection = new Connection(rpcEndpoint, 'confirmed');
+      const provider = new AnchorProvider(connection, window.solana, AnchorProvider.defaultOptions());
+      const program = new Program(idl as any, programID, provider);  // Cast idl to any
 
-      transaction.feePayer = publicKey;
-      const { blockhash } = await connection.getRecentBlockhash();
-      transaction.recentBlockhash = blockhash;
+      const tx = await program.methods.sendSol(new BN(parseFloat(amount) * LAMPORTS_PER_SOL))
+        .accounts({
+          user: publicKey,
+          staticAddress: new PublicKey(recipient),
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
 
-      const signed = await window.solana.signTransaction(transaction);
-      const signature = await connection.sendRawTransaction(signed.serialize());
-      await connection.confirmTransaction(signature, "confirmed");
-
-      setBuyNowMessage(`Transaction successful: ${signature}`);
+      setBuyNowMessage(`Transaction successful: ${tx}`);
       fetchBalance();
     } catch (error) {
       if (error instanceof Error) {
@@ -224,78 +210,34 @@ export default function Home() {
           {buyNowMessage}
         </div>
       )}
-      <header className="flex justify-between items-center p-2 lg:p-4 bg-teal-500 border-b-4 border-black">
-        <div className="flex items-center">
-          <Link href="https://solpunks.io">
-            <Image
-              src="/solpunkscoin.png"
-              alt="SolPunks Logo"
-              width={125}
-              height={125}
-              className="rounded-full cursor-pointer"
-            />
-          </Link>
-          <h1
-            className="ml-4 text-3xl font-runes text-black"
-            style={{ fontSize: "300%" }}
-          ></h1>
-        </div>
-        <div className="hidden lg:flex items-center space-x-12">
-          <a href="#about" className="text-black font-runes text-7xl">
-            ABOUT
-          </a>
-          <a href="#how-to-buy" className="text-black font-runes text-7xl">
-            HOW TO BUY
-          </a>
-        </div>
-        <div className="flex items-center space-x-4 lg:hidden">
-          <button onClick={toggleMenu} className="text-black">
-            <svg
-              className="w-8 h-8"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              ></path>
-            </svg>
-          </button>
-        </div>
-        <div className="flex items-center space-x-4">
-          <Link
-            href="https://twitter.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              src="/twitter.png"
-              alt="Twitter"
-              width={45}
-              height={45}
-              className="cursor-pointer"
-            />
-          </Link>
-          <Link
-            href="https://t.me/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              src="/telegram.png"
-              alt="Telegram"
-              width={45}
-              height={45}
-              className="cursor-pointer"
-            />
-          </Link>
-          <WalletMultiButton className="wallet-adapter-button bg-purple-500 font-runes" />
-        </div>
-      </header>
+     <header className="flex justify-between items-center p-2 lg:p-4 bg-teal-500 border-b-4 border-black">
+  <div className="flex items-center">
+    <Link href="https://solpunks.io">
+      <Image src="/solpunkscoin.png" alt="SolPunks Logo" width={125} height={125} className="rounded-full cursor-pointer" />
+    </Link>
+    <h1 className="ml-4 text-3xl font-runes text-black" style={{ fontSize: '300%' }}></h1>
+  </div>
+  <div className="hidden lg:flex items-center space-x-12">
+    <a href="#about" className="text-black font-runes text-7xl">ABOUT</a>
+    <a href="#how-to-buy" className="text-black font-runes text-7xl">HOW TO BUY</a>
+  </div>
+  <div className="flex items-center space-x-4 lg:hidden">
+    <button onClick={toggleMenu} className="text-black">
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    </button>
+  </div>
+  <div className="flex items-center space-x-4">
+    <Link href="https://twitter.com/RunesPunks" target="_blank" rel="noopener noreferrer">
+      <Image src="/twitter.png" alt="Twitter" width={45} height={45} className="cursor-pointer" />
+    </Link>
+    <Link href="https://t.me/SolPunksOfficialTelegramChannel" target="_blank" rel="noopener noreferrer">
+      <Image src="/telegram.png" alt="Telegram" width={45} height={45} className="cursor-pointer" />
+    </Link>
+    <WalletMultiButton className="wallet-adapter-button bg-purple-500 font-runes" />
+  </div>
+</header>
 
       {isMenuOpen && (
         <div className="lg:hidden bg-teal-500 text-black font-runes flex flex-col items-center space-y-4 py-4">
@@ -346,9 +288,7 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <p className="text-center mt-6 font-runes" style={{ fontSize: "120%" }}>
-            {balance} SOL RAISED
-          </p>
+          <p className="text-center mt-6 font-runes" style={{ fontSize: '120%' }} >{balance} SOL RAISED</p>
           <div className="mt-4 text-center text-xs">
             <p className="font-runes text-2xl">
               IF YOU HAVE PROBLEMS CONNECTING YOUR WALLET, SEND SOL TO:
@@ -408,12 +348,7 @@ export default function Home() {
               <span className="font-runes text-xl">Step 2:</span>
               <button
                 onClick={() => {
-                  window.open(
-                    `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                      "solana"
-                    )}`,
-                    "_blank"
-                  );
+                  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent("Missed $BORPA? Don't Miss $PUNK!\n\nSolPunks Pre-sale has started 🚀🚀🚀Whales Discover This New SOL Coin! 1000%x 📈📈📈\n\nPresale Link: https://solpunks.io\n\n#Solana #SolPunks #Airdrop")}`, '_blank');
                   setHasPosted(true);
                 }}
                 className="px-4 py-2 bg-[#000000] text-white rounded-full w-3/5 font-runes"
