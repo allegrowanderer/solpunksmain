@@ -10,13 +10,15 @@ Transaction,
 } from "@solana/web3.js";
 import { useWallet, WalletContextState } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { Program, AnchorProvider, BN, Idl } from "@project-serum/anchor";
 import Image from "next/image";
 import Link from "next/link";
+import nacl from "tweetnacl";
+
 import "@solana/wallet-adapter-react-ui/styles.css";
 import "./globals.css";
 import { supabase } from "../lib/supabaseClient";
 import idl from "../idl/idl.json"; // Ensure the correct path
+import bs58 from "bs58";
 
 const programID = new PublicKey("AdtugN1JEE4esw19izQHVMGWvamDJs3oMHtjFwrcyBMD");
 
@@ -33,6 +35,11 @@ const [submitMessage, setSubmitMessage] = useState<string>("");
 const [copySuccess, setCopySuccess] = useState<string>("");
 const [progress, setProgress] = useState(0);
 const [balance, setBalance] = useState(0);
+const [dappKeyPair] = useState(nacl.box.keyPair());
+const [session, setSession] = useState<string>();
+
+const [sharedSecret, setSharedSecret] = useState<Uint8Array>();
+const [logs, setLogs] = useState<string[]>([]);
 const [twitterUsername, setTwitterUsername] = useState("");
 const [isClient, setIsClient] = useState(false);
 const [hasFollowed, setHasFollowed] = useState(false);
@@ -55,6 +62,20 @@ setProgress((solBalance / 1000) * 100); // Update goal to 1000 SOL
 } catch (error) {
 console.error("Failed to fetch balance:", error);
 }
+};
+
+const encryptPayload = (payload: any, sharedSecret?: Uint8Array) => {
+if (!sharedSecret) throw new Error("missing shared secret");
+
+const nonce = nacl.randomBytes(24);
+
+const encryptedPayload = nacl.box.after(
+Buffer.from(JSON.stringify(payload)),
+nonce,
+sharedSecret
+);
+
+return [nonce, encryptedPayload];
 };
 
 const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,16 +159,42 @@ setTimeout(() => setBuyNowMessage(""), 3000);
 return;
 }
 
-try {
-const connection = new Connection(rpcEndpoint, "confirmed");
-const transaction = new Transaction().add(
+const createTransferTransaction = async () => {
+if (!publicKey) throw new Error("missing public key from user");
+let transaction = new Transaction().add(
 SystemProgram.transfer({
 fromPubkey: publicKey,
 toPubkey: new PublicKey(recipient),
 lamports: parseFloat(amount) * LAMPORTS_PER_SOL,
 })
 );
+transaction.feePayer = publicKey;
+const connection = new Connection(rpcEndpoint, "confirmed");
 
+const anyTransaction: any = transaction;
+anyTransaction.recentBlockhash = (
+await connection.getLatestBlockhash()
+).blockhash;
+return transaction;
+};
+
+try {
+const connection = new Connection(rpcEndpoint, "confirmed");
+
+const transaction = await createTransferTransaction();
+
+const serializedTransaction = transaction.serialize({
+requireAllSignatures: false,
+});
+
+/* const transaction = new Transaction().add(
+SystemProgram.transfer({
+fromPubkey: publicKey,
+toPubkey: new PublicKey(recipient),
+lamports: parseFloat(amount) * LAMPORTS_PER_SOL,
+})
+);
+*/
 transaction.feePayer = publicKey;
 const { blockhash } = await connection.getRecentBlockhash();
 transaction.recentBlockhash = blockhash;
