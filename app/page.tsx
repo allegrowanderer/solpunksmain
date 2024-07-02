@@ -24,7 +24,7 @@ const rpcEndpoint =
   "https://mainnet.helius-rpc.com/?api-key=42734956-df14-4915-8bfe-56c62a20cd04";
 
 export default function Home() {
-  const { publicKey, signTransaction, sendTransaction }: WalletContextState = useWallet();
+  const { publicKey, sendTransaction }: WalletContextState = useWallet();
   const [amount, setAmount] = useState("");
   const [buyNowMessage, setBuyNowMessage] = useState<string>("");
   const [submitMessage, setSubmitMessage] = useState<string>("");
@@ -144,10 +144,10 @@ export default function Home() {
       const program = new Program(idl as Idl, programID, provider);
 
       const transaction = await program.methods
-        .yourMethodName(new BN(parseFloat(amount) * LAMPORTS_PER_SOL)) // Replace with your actual method and parameters
+        .buyTokens(new BN(parseFloat(amount) * LAMPORTS_PER_SOL)) // Replace with your actual method and parameters
         .accounts({
-          from: publicKey,
-          to: new PublicKey(recipient),
+          user: publicKey,
+          recipient: new PublicKey(recipient),
           systemProgram: SystemProgram.programId,
         })
         .transaction();

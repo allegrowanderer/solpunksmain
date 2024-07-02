@@ -1,1 +1,33 @@
-{"version":"0.1.0","name":"my_anchor_project","instructions":[{"name":"sendSol","accounts":[{"name":"user","isMut":true,"isSigner":true},{"name":"staticAddress","isMut":true,"isSigner":false},{"name":"systemProgram","isMut":false,"isSigner":false}],"args":[{"name":"amount","type":"u64"}]}]}
+{
+    "version": "0.1.0",
+    "name": "your_program_name",
+    "instructions": [
+      {
+        "name": "buyTokens",
+        "accounts": [
+          {
+            "name": "user",
+            "isMut": true,
+            "isSigner": true
+          },
+          {
+            "name": "recipient",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "systemProgram",
+            "isMut": false,
+            "isSigner": false
+          }
+        ],
+        "args": [
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    ]
+  }
+  
