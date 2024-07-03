@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { Connection } from "@solana/web3.js";
 import { TLog } from "../types";
 
