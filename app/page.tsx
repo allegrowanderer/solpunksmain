@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Connection,
   PublicKey,
@@ -10,22 +10,43 @@ import {
 } from "@solana/web3.js";
 import { useWallet, WalletContextState } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { Program, AnchorProvider, BN, Idl } from "@project-serum/anchor";
+import { Program, AnchorProvider, BN, Idl, getProvider } from "@project-serum/anchor";
 import Image from "next/image";
 import Link from "next/link";
 import "@solana/wallet-adapter-react-ui/styles.css";
 import "./globals.css";
 import { supabase } from "../lib/supabaseClient";
 import idl from "../idl/idl.json"; // Ensure the correct path
+import createTransferTransaction from "./utils/createTransferTransaction";
+import signAndSendTransaction from "./utils/signAndSendTransaction";
+import pollSignatureStatus from "./utils/pollSignatureStatus";
+import { TLog } from "@/types";
 
 const programID = new PublicKey("AdtugN1JEE4esw19izQHVMGWvamDJs3oMHtjFwrcyBMD");
 const recipient = "9u92hBMxYgcGNi1JYSbRsuEM1CsLVW48G7jKG6rRhXr8";
 const rpcEndpoint =
   "https://mainnet.helius-rpc.com/?api-key=42734956-df14-4915-8bfe-56c62a20cd04";
 
+export type ConnectedMethods =
+  | {
+      name: string;
+      onClick: () => Promise<string>;
+    }
+  | {
+      name: string;
+      onClick: () => Promise<void>;
+    };
+interface Props {
+  publicKey: PublicKey | null;
+  connectedMethods: ConnectedMethods[];
+  handleConnect: () => Promise<void>;
+  logs: TLog[];
+  clearLogs: () => void;
+}
+
 export default function Home() {
   const { publicKey, sendTransaction }: WalletContextState = useWallet();
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(0);
   const [buyNowMessage, setBuyNowMessage] = useState<string>("");
   const [submitMessage, setSubmitMessage] = useState<string>("");
   const [copySuccess, setCopySuccess] = useState<string>("");
@@ -36,11 +57,62 @@ export default function Home() {
   const [hasFollowed, setHasFollowed] = useState(false);
   const [hasPosted, setHasPosted] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [logs, setLogs] = useState<TLog[]>([]);
+
+  const provider = getProvider();
+
+  const createLog = useCallback(
+    (log: TLog) => {
+      return setLogs((logs) => [...logs, log]);
+    },
+    [setLogs]
+  );
 
   useEffect(() => {
     setIsClient(true);
     fetchBalance();
   }, []);
+  /** SignAndSendTransaction */
+  const handleSignAndSendTransaction = useCallback(async () => {
+    const connection = new Connection(rpcEndpoint, "confirmed");
+
+    if (!provider) return;
+
+    try {
+      const transaction = await createTransferTransaction(
+        amount,
+        provider.publicKey!,
+        recipient,
+        connection
+      );
+      createLog({
+        status: "info",
+        method: "signAndSendTransaction",
+        message: `Requesting signature for: ${JSON.stringify(transaction)}`,
+      });
+      const signature = await signAndSendTransaction(provider, transaction);
+      createLog({
+        status: "info",
+        method: "signAndSendTransaction",
+        message: `Signed and submitted transaction ${signature}.`,
+      });
+      pollSignatureStatus(signature, connection, createLog);
+    } catch (error) {
+      if (error instanceof Error) {
+        createLog({
+          status: "error",
+          method: "signAndSendTransaction",
+          message: error.message,
+        });
+      } else {
+        createLog({
+          status: "error",
+          method: "signAndSendTransaction",
+          message: String(error),
+        });
+      }
+    }
+  }, [createLog]);
 
   const fetchBalance = async () => {
     try {
@@ -53,10 +125,6 @@ export default function Home() {
     } catch (error) {
       console.error("Failed to fetch balance:", error);
     }
-  };
-
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAmount(e.target.value);
   };
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,7 +186,7 @@ export default function Home() {
   };
 
   const handleTransaction = async () => {
-    if (!amount || isNaN(parseFloat(amount))) {
+    if (!amount || isNaN(amount)) {
       setBuyNowMessage("Please enter a valid amount");
       setTimeout(() => setBuyNowMessage(""), 3000);
       return;
@@ -137,22 +205,22 @@ export default function Home() {
     }
 
     try {
-        const connection = new Connection(rpcEndpoint, "confirmed");
-        const provider = new AnchorProvider(connection, window.solana, {
-          preflightCommitment: "confirmed",
-        });
-        const program = new Program(idl as Idl, programID, provider);
-  
-        const transaction = new Transaction().add(
-          await program.methods
-            .sendSol(new BN(parseFloat(amount) * LAMPORTS_PER_SOL))
-            .accounts({
-              user: publicKey,
-              recipient: new PublicKey(recipient),
-              systemProgram: SystemProgram.programId,
-            })
-            .instruction()
-        );
+      const connection = new Connection(rpcEndpoint, "confirmed");
+      const provider = new AnchorProvider(connection, window.solana, {
+        preflightCommitment: "confirmed",
+      });
+      const program = new Program(idl as Idl, programID, provider);
+
+      const transaction = new Transaction().add(
+        await program.methods
+          .sendSol(new BN(amount * LAMPORTS_PER_SOL))
+          .accounts({
+            user: publicKey,
+            recipient: new PublicKey(recipient),
+            systemProgram: SystemProgram.programId,
+          })
+          .instruction()
+      );
 
       transaction.feePayer = publicKey;
       const { blockhash } = await connection.getRecentBlockhash();
@@ -280,11 +348,7 @@ export default function Home() {
               className="cursor-pointer"
             />
           </Link>
-          <Link
-            href="https://t.me/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <Link href="https://t.me/" target="_blank" rel="noopener noreferrer">
             <Image
               src="/telegram.png"
               alt="Telegram"
@@ -317,15 +381,17 @@ export default function Home() {
             PRESALE IS LIVE!
           </h2>
           <input
-            type="text"
+            type="number"
+            min={0.1}
+            step={0.1}
             value={amount}
-            onChange={handleAmountChange}
+            onChange={(e) => setAmount(Number(e.target.value))}
             placeholder="Enter amount in SOL"
             className="px-4 py-2 border-black border-2 rounded-md w-full bg-purple-600 text-white text-center"
           />
           <div className="flex justify-center">
             <button
-              onClick={handleTransaction}
+              onClick={handleSignAndSendTransaction}
               className="px-4 py-2 bg-purple-700 text-white rounded-full w-2/5 font-runes"
               style={{ fontSize: "150%" }}
             >
@@ -346,7 +412,10 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <p className="text-center mt-6 font-runes" style={{ fontSize: "120%" }}>
+          <p
+            className="text-center mt-6 font-runes"
+            style={{ fontSize: "120%" }}
+          >
             {balance} SOL RAISED
           </p>
           <div className="mt-4 text-center text-xs">
