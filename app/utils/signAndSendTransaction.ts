@@ -1,5 +1,5 @@
+"use client"
 import { Transaction } from "@solana/web3.js";
-
 import { PhantomProvider } from "../types";
 
 /**
