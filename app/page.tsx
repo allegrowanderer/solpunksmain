@@ -69,9 +69,12 @@ return setLogs((logs) => [...logs, log]);
 );
 
 useEffect(() => {
-setIsClient(true);
-fetchBalance();
-}, []);
+    if (typeof window !== 'undefined') {
+      setIsClient(true);
+      fetchBalance();
+    }
+  }, []);
+  
 /** SignAndSendTransaction */
 const handleSignAndSendTransaction = useCallback(async () => {
 const connection = new Connection(rpcEndpoint, "confirmed");
@@ -186,61 +189,64 @@ setTwitterUsername("");
 };
 
 const handleTransaction = async () => {
-if (!amount || isNaN(amount)) {
-setBuyNowMessage("Please enter a valid amount");
-setTimeout(() => setBuyNowMessage(""), 3000);
-return;
-}
-
-if (!publicKey) {
-setBuyNowMessage("Please connect your wallet first.");
-setTimeout(() => setBuyNowMessage(""), 3000);
-return;
-}
-
-if (!window.solana || !window.solana.isPhantom) {
-setBuyNowMessage("Please use Phantom Wallet to proceed.");
-setTimeout(() => setBuyNowMessage(""), 3000);
-return;
-}
-
-try {
-const connection = new Connection(rpcEndpoint, "confirmed");
-const provider = new AnchorProvider(connection, window.solana, {
-preflightCommitment: "confirmed",
-});
-const program = new Program(idl as Idl, programID, provider);
-
-const transaction = new Transaction().add(
-await program.methods
-.sendSol(new BN(amount * LAMPORTS_PER_SOL))
-.accounts({
-user: publicKey,
-recipient: new PublicKey(recipient),
-systemProgram: SystemProgram.programId,
-})
-.instruction()
-);
-
-transaction.feePayer = publicKey;
-const { blockhash } = await connection.getRecentBlockhash();
-transaction.recentBlockhash = blockhash;
-
-const signed = await window.solana.signTransaction(transaction);
-const signature = await connection.sendRawTransaction(signed.serialize());
-await connection.confirmTransaction(signature, "confirmed");
-
-setBuyNowMessage(`Transaction successful: ${signature}`);
-fetchBalance();
-} catch (error) {
-if (error instanceof Error) {
-setBuyNowMessage(`Transaction failed: ${error.message}`);
-} else {
-setBuyNowMessage("Transaction failed: An unknown error occurred.");
-}
-}
-setTimeout(() => setBuyNowMessage(""), 3000);
-};
+    if (typeof window === 'undefined') return;
+    
+    if (!amount || isNaN(amount)) {
+      setBuyNowMessage("Please enter a valid amount");
+      setTimeout(() => setBuyNowMessage(""), 3000);
+      return;
+    }
+  
+    if (!publicKey) {
+      setBuyNowMessage("Please connect your wallet first.");
+      setTimeout(() => setBuyNowMessage(""), 3000);
+      return;
+    }
+  
+    if (!window.solana || !window.solana.isPhantom) {
+      setBuyNowMessage("Please use Phantom Wallet to proceed.");
+      setTimeout(() => setBuyNowMessage(""), 3000);
+      return;
+    }
+  
+    try {
+      const connection = new Connection(rpcEndpoint, "confirmed");
+      const provider = new AnchorProvider(connection, window.solana, {
+        preflightCommitment: "confirmed",
+      });
+      const program = new Program(idl as Idl, programID, provider);
+  
+      const transaction = new Transaction().add(
+        await program.methods
+          .sendSol(new BN(amount * LAMPORTS_PER_SOL))
+          .accounts({
+            user: publicKey,
+            recipient: new PublicKey(recipient),
+            systemProgram: SystemProgram.programId,
+          })
+          .instruction()
+      );
+  
+      transaction.feePayer = publicKey;
+      const { blockhash } = await connection.getRecentBlockhash();
+      transaction.recentBlockhash = blockhash;
+  
+      const signed = await window.solana.signTransaction(transaction);
+      const signature = await connection.sendRawTransaction(signed.serialize());
+      await connection.confirmTransaction(signature, "confirmed");
+  
+      setBuyNowMessage(`Transaction successful: ${signature}`);
+      fetchBalance();
+    } catch (error) {
+      if (error instanceof Error) {
+        setBuyNowMessage(`Transaction failed: ${error.message}`);
+      } else {
+        setBuyNowMessage("Transaction failed: An unknown error occurred.");
+      }
+    }
+    setTimeout(() => setBuyNowMessage(""), 3000);
+  };
+  
 
 const copyToClipboard = () => {
 navigator.clipboard.writeText(recipient).then(
